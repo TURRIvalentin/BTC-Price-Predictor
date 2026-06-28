@@ -4,6 +4,8 @@ A Bitcoin price forecasting pipeline built on a stacked LSTM in PyTorch. The mod
 
 ![App screenshot](docs/screenshot.png)
 
+**Live demo:** [https://bt-7dff3b7ba8f246528d893ace7e964833.ecs.us-east-2.on.aws](https://bt-7dff3b7ba8f246528d893ace7e964833.ecs.us-east-2.on.aws)
+
 ---
 
 ## Features
@@ -56,6 +58,12 @@ This project is an end-to-end ML engineering exercise covering data ingestion, s
 | Optional data source | snowflake-connector-python |
 | Dashboard | Streamlit, Plotly |
 | Artifact persistence | joblib |
+
+---
+
+## Deployment
+
+The app runs on AWS ECS Fargate (containerized with Docker, image stored in ECR, served via an Application Load Balancer with HTTPS). No servers to manage — the task scales to zero when idle and is fully reproducible from the `Dockerfile` in the repo.
 
 ---
 
