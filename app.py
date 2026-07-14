@@ -20,6 +20,14 @@ st.set_page_config(
     layout="wide",
 )
 
+# ── Cached data loader ───────────────────────────────────────────────────────
+# Defined before the sidebar so the "Actualizar datos" button below can call
+# `_load_history.clear()` on this same function later in the script.
+
+@st.cache_data(ttl=3600, show_spinner="Fetching BTC price history…")
+def _load_history() -> pd.DataFrame:
+    return get_clean_data()
+
 # ── Sidebar ───────────────────────────────────────────────────────────────────
 
 with st.sidebar:
@@ -39,6 +47,29 @@ with st.sidebar:
     )
 
     st.divider()
+
+    # Manual refresh: re-download from yfinance (bypassing the CSV cache) up
+    # to today, then invalidate Streamlit's in-memory cache and rerun. Only
+    # get_clean_data() runs again — the trained model artifacts are never
+    # touched, so this never retrains anything.
+    if st.button("🔄 Actualizar datos", use_container_width=True):
+        try:
+            with st.spinner("Descargando datos actualizados desde Yahoo Finance…"):
+                get_clean_data(force_refresh=True)
+            _load_history.clear()
+            st.session_state["refresh_error"] = None
+            st.rerun()
+        except Exception as exc:
+            st.session_state["refresh_error"] = str(exc)
+
+    if st.session_state.get("refresh_error"):
+        st.error(
+            "⚠️ No se pudieron actualizar los datos desde Yahoo Finance. "
+            "Se muestran los últimos datos disponibles.\n\n"
+            f"Detalle: {st.session_state['refresh_error']}"
+        )
+
+    st.divider()
     st.caption(
         "Architecture: 2-layer LSTM + Dropout  \n"
         "Inference: 100 MC forward passes  \n"
@@ -46,10 +77,6 @@ with st.sidebar:
     )
 
 # ── Load historical data ──────────────────────────────────────────────────────
-
-@st.cache_data(ttl=3600, show_spinner="Fetching BTC price history…")
-def _load_history() -> pd.DataFrame:
-    return get_clean_data()
 
 try:
     df_hist = _load_history()
@@ -60,6 +87,8 @@ except Exception as exc:
 hist_slice = df_hist["Close"].tail(hist_days)
 last_close = float(hist_slice.iloc[-1])
 last_date  = hist_slice.index[-1]
+
+st.sidebar.caption(f"📅 Datos actualizados al {last_date.strftime('%d/%m/%Y')}")
 
 # ── Run forecast ──────────────────────────────────────────────────────────────
 
