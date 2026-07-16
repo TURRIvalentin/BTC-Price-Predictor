@@ -9,7 +9,8 @@ WORKDIR /app
 # source-code changes. Re-running pip only happens when requirements.txt
 # itself changes.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir "torch>=2.2" --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application source and pre-trained model artifacts.
 # models/ is listed in .gitignore (weights are not version-controlled)

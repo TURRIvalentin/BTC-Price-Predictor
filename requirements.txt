@@ -1,7 +1,10 @@
 yfinance>=0.2.40
 pandas>=2.0
 numpy>=1.26
-torch>=2.2
+# torch is NOT installed from here — Dockerfile installs it separately
+# from the PyTorch CPU-only index (https://download.pytorch.org/whl/cpu)
+# to avoid pulling the ~2GB CUDA build into the (GPU-less) Fargate image.
+# Local dev / training envs should `pip install torch>=2.2` normally to get GPU support.
 scikit-learn>=1.3
 joblib>=1.3
 snowflake-connector-python>=3.0
